@@ -2,6 +2,8 @@ const authBD = require('../bdMysql/authBD');
 const cripto = require('../models/criptografia');
 const reqEsp = require('../models/reqEsp');
 const equiBD = require('../bdMysql/equiBD');
+const bdJson = require('../bdJson/bdJson');
+const formData = require('../formData');
 const jwt = require('jsonwebtoken');
 
 module.exports = {
@@ -25,5 +27,48 @@ module.exports = {
             }
         });
     },
+    async RmEquipamento(req, res) {
+        const pin = await req.body.pin;
+        //authBD.loginUser(res, email, senha);
+        console.log('RmEquipamento: pin ( ',pin,' )');
+        const data = {
+            pinNumber:pin
+        }
+        reqEsp.rmEquiEsp(data,res,req).then(response=>{
+            console.log("conecção feita co mo esp");
+            if (response) { 
+                var formdata = formData("data");
+                equiBD.removerEqui(pin,res);
+            }
+        },error=>{
+            console.log("Tentativa de acessar esp falhada espController: ",res);
+        });
+    },
+    async DWEsp(req, res) {
+        console.log('DigitalWriteEquipamento controller');
+        const pin = await req.body.pin;
+        const valor = await req.body.valor;
+        //authBD.loginUser(res, email, senha);
+        console.log('Digital Write equi: pin ( ',pin,' ), valor ( ',valor,' )');
+        const data = {
+            pinNumber:pin
+        }
+        reqEsp.DigitalWriteEsp(data,res,req).then(response=>{
+            console.log("conexão feita com o esp");
+            if (response) {
+                var formhora = formData("hora");
+                let valores = {
+                    modulo_id:pin,
+                    hora:formhora,
+                    potencia:response.potencia,
+                    estado:valor
+                };
+                var formdata = formData("data");
+                bdJson.enviarbd(formdata,valores,res);
+            }
+        },error=>{
+            console.log("Tentativa de acessar esp falhada espController: ",res);
+        });
+    }
 
 }

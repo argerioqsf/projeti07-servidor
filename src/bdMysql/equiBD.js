@@ -4,9 +4,11 @@ const insertLog = "insert into log values (default, ?, ?, ?, ?)";
 const selectLog = "select *from log where id_central_fk = ?";
 const sqlUpdateEstado = "update estados_centrais set estado = ? where id_central_fk = ?";
 const sqlUltimoEstado = "select estado from estados_centrais where id_estado=?";
+const insertEstadoCentral = "insert into estados_centrais values (default, ? , 'null')";
+
 const cadastrarEquipamento = "insert into equipamentos values (?, ?, ?)";
 const buscaEquipamento = "select id_equi from equipamentos where id_equi = ?";
-const insertEstadoCentral = "insert into estados_centrais values (default, ? , 'null')";
+const removerEquipamento = "delete from equipamentos where id_equi = ?";
 
 module.exports = {
 
@@ -34,5 +36,18 @@ module.exports = {
                 });
             }
        });
-    }
+    },
+    removerEqui: function(pin, res){
+                 console.log("remover equipamento");    
+                 connection.query(removerEquipamento, [pin], (err, results)=>{
+                     if(err){
+                         res.json(err);
+                     } else {
+                         res.json({
+                             status:200,
+                             description:'Equipamento removido com sucesso.'
+                         });
+                     }
+                 });
+     }
 }

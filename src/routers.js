@@ -13,13 +13,13 @@ routes.post('/login', authController.loginUser); // login usuario
 
 routes.post('/cadastro', authController.cadastroUser); // cadastro usuario
 
-routes.get('/teste', authController.teste); // cadastro usuario
+routes.get('/teste', authController.teste); // teste
 
-routes.post('/AddEquipamento', authController.verificaJWT, equiController.AddEquipamento); // cadastro de centrais
+routes.post('/AddEquipamento', authController.verificaJWT, equiController.AddEquipamento); // adicionar equipamento
 
-routes.post('/RmEquipamento', authController.verificaJWT, espController.cadastroCentral); // cadastro de centrais
+routes.post('/RmEquipamento', authController.verificaJWT, equiController.RmEquipamento); // remove equipamento
 
-routes.get('/estadoRele', authController.verificaJWT, espController.ligaDesliga); // ligar ou desligar central
+routes.post('/estadoRele', authController.verificaJWT, equiController.DWEsp); // ligar ou desligar central
 
 routes.get('/equipamentos', authController.verificaJWT, espController.botoesCentrais); // botoes com o nome das centrais
 

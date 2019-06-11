@@ -4,7 +4,7 @@ const formData = require('../formData');
 var obj = {
  
     getFileDb: function (path) {
-        return  __dirname + './saves/'+ path +'.json';
+        return  __dirname + '/../saves/'+ path +'.json';
     },
  
     getData: function (path) {
@@ -47,7 +47,7 @@ var obj = {
                 // formhora =  formData("hora");
                 // console.log("[" + formhora + "] Informações adicionadas no arquivo: " + formdata + ".json");
                 // console.log("[" + formhora + "]  Length do arquivo: " + formdata + ".json: " + fileJson.length);
-                // res.json("attDados");
+                 res.json("attDados");
             }else{
                 // formhora =  formData("hora");
                 // console.log("[" + formhora + "] o arquivo não existe");

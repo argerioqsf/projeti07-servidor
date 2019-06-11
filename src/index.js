@@ -18,7 +18,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(require('./routers'));
 
 
-server.listen(3398, function(){
-    console.log('Servidor rodando na porta 3398');
+server.listen(3006, function(){
+    console.log('Servidor rodando na porta 3006');
 });
 
