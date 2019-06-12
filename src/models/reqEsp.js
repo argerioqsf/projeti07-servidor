@@ -5,29 +5,21 @@ const espBD = require('../bdMysql/espBD');
 module.exports = {
     addEquiEsp(datta, resp, request){
         return new Promise((resolve,reject)=>{
-            const data = JSON.stringify(datta);
-            const options = {
-                hostname: '192.168.2.140',
-                port: 80,
-                path: '/addPin',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': data.length
-                }                        
-            }
-            if (false) {
-                const req = http.request(options, (res)=>{
+            if (true) {
+                const req = http.get(`http://192.168.2.140/addPin?pinName=${datta.pinName}&pinNumber=${datta.pinNumber}`, (res)=>{
                     if(res.statusCode == 200){
                         //request.io.emit('status', true); //enviando via socket
-                        console.log("Tentativa de acessar esp feita com sucesso: "+res);
+                        res.setEncoding('utf8');
                         res.on('data', (chunk) => {
-                            resolve({
-                                potencia:chunk.potencia
-                            });
+                            console.log("Tentativa de acessar esp feita com sucesso: ",chunk);
+                            let potencia = JSON.parse(chunk)
+                            resolve(potencia);
                         });
                     } else if(res.statusCode == 404){
-                        console.log("Tentativa de acessar esp falhada: "+res);
+                        console.log("Tentativa de acessar esp falhada: "+res.statusMessage);
+                        resolve(false);
+                    }else{
+                        console.log("Tentativa de acessar esp falhada: "+res.statusMessage);
                         resolve(false);
                     }
                 });               
@@ -40,8 +32,7 @@ module.exports = {
                     console.log("Tentativa de acessar esp falhada: ",res);
                     reject(error);
             
-                });
-                req.write(data);
+                }); 
                 req.end();
             }else{
                 resolve({
@@ -59,8 +50,7 @@ module.exports = {
                 path: '/removePin',
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': data.length
+                    'Content-Type': 'application/json'
                 }                        
             }
             if (false) {
@@ -94,25 +84,15 @@ module.exports = {
     DigitalWriteEsp(datta, resp, request){
         return new Promise((resolve,reject)=>{
             const data = JSON.stringify(datta);
-            const options = {
-                hostname: '192.168.2.140',
-                port: 80,
-                path: '/digitalWrite',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': data.length
-                }                        
-            }
-            if (false) {
-                const req = http.request(options, (res)=>{
+            if (true) {
+                const req = http.get(`http://192.168.2.140/digitalWrite?pinNumber=${datta.pinNumber}&pinValue=${datta.pinValue}`, (res)=>{
                     if(res.statusCode == 200){
                         //request.io.emit('status', true); //enviando via socket
-                        console.log("esp acessado com sucesso: "+res);
+                        res.setEncoding('utf8');
                         res.on('data', (chunk) => {
-                            resolve({
-                                potencia:chunk.potencia
-                            });
+                            console.log("Tentativa de acessar esp feita com sucesso: ",chunk);
+                            let potencia = JSON.parse(chunk);
+                            resolve(potencia);
                         });
                     } else if(res.statusCode == 404){
                         console.log("Tentativa de acessar esp falhada: "+res);
@@ -125,11 +105,10 @@ module.exports = {
                         status:400,
                         description:'tentativa de conexão com o esp falhada.'
                     });
-                    console.log("Tentativa de acessar esp falhada: ",res);
+                    console.log("Tentativa de acessar esp falhada: ",error);
                     reject(error);
             
                 });
-                req.write(data);
                 req.end();
             }else{
                 resolve({

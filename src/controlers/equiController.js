@@ -51,19 +51,21 @@ module.exports = {
         //authBD.loginUser(res, email, senha);
         console.log('Digital Write equi: pin ( ',pin,' ), valor ( ',valor,' )');
         const data = {
-            pinNumber:pin
+            pinNumber:pin,
+            pinValue:valor
         }
         reqEsp.DigitalWriteEsp(data,res,req).then(response=>{
             console.log("conexão feita com o esp");
             if (response) {
                 var formhora = formData("hora");
+                var formdata = formData("data");
                 let valores = {
                     modulo_id:pin,
                     hora:formhora,
+                    dia:formdata,
                     potencia:response.potencia,
                     estado:valor
                 };
-                var formdata = formData("data");
                 bdJson.enviarbd(formdata,valores,res);
             }
         },error=>{
