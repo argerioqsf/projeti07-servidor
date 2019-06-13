@@ -6,6 +6,7 @@ const bdJson = require('../bdJson/bdJson');
 const formData = require('../formData');
 const jwt = require('jsonwebtoken');
 const socket = require('../socket/socket-io.js');
+var fs = require('fs');
 
 module.exports = {
     async AddEquipamento(req, res) {
@@ -108,7 +109,24 @@ module.exports = {
     consumoUnitario: async(req,res)=>{
         console.log('consumoUnitario controller');
         const pin = await req.body.pin;
-        const mes = await req.body.mes;
+        let data = await req.body.data;
+        let mes = data.split("-");
+        mes = String(mes[0]);
+        let formdata = "modulo_"+pin;
+        var local = bdJson.getFileDb(formdata);
+        console.log('local: ',local);
+        var fileContent = fs.exists(local, function(exists){
+            if (exists) {
+                var fileJson = bdJson.getData(formdata);
+                console.log('fileJson: ',fileJson.registros[data].registros);
+                res.json(fileJson.registros[data].registros);
+            }else{
+                res.json({
+                    status:409,
+                    description:"dados não encontrados"
+                });
+            }
+        });
 
     },
     consumoMensal:async(req,res)=>{

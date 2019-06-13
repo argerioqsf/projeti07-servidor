@@ -23,7 +23,7 @@ routes.post('/estadoRele', authController.verificaJWT, equiController.DWEsp); //
 
 routes.get('/equipamentos', authController.verificaJWT, equiController.equipamentos); // retorna todos os equipamentos cdastrados
 
-routes.post('/consumoMensal', equiController.consumoMensal); // seleciona a central com seus dados
+routes.post('/consumoMensal', authController.verificaJWT,equiController.consumoMensal); // seleciona a central com seus dados
 
 routes.post('/consumoUnitario', authController.verificaJWT, equiController.consumoUnitario);
 
