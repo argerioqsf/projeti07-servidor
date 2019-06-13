@@ -6,6 +6,7 @@ const sqlCadastro = "INSERT INTO usuarios VALUES (default,?,?)";
 
 module.exports = {
     loginUser: function(res, email, senha){
+        console.log('Login');
         connection.query(loginUser, [email, senha], (err, results)=>{
             if(err){
                 console.log("erro na busca de login");

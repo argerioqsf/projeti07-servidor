@@ -19,12 +19,16 @@ routes.post('/AddEquipamento', authController.verificaJWT, equiController.AddEqu
 
 routes.post('/RmEquipamento', authController.verificaJWT, equiController.RmEquipamento); // remove equipamento
 
-routes.post('/estadoRele', authController.verificaJWT, equiController.DWEsp); // ligar ou desligar central
+routes.post('/estadoRele', authController.verificaJWT, equiController.DWEsp); // ligar ou desligar um equipamento
 
-routes.get('/equipamentos', authController.verificaJWT, espController.botoesCentrais); // botoes com o nome das centrais
+routes.get('/equipamentos', authController.verificaJWT, equiController.equipamentos); // retorna todos os equipamentos cdastrados
 
-routes.get('/consumoMensal', espController.selecionaCentral); // seleciona a central com seus dados
+routes.post('/consumoMensal', equiController.consumoMensal); // seleciona a central com seus dados
 
-routes.get('/consumoUnitario', authController.verificaJWT, espController.ultimoEstado);
+routes.post('/consumoUnitario', authController.verificaJWT, equiController.consumoUnitario);
+
+routes.post('/estadoEquipamento', equiController.estadoEquipamento);
+
+
 
 module.exports = routes;

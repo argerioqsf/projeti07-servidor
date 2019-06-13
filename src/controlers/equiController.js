@@ -5,6 +5,7 @@ const equiBD = require('../bdMysql/equiBD');
 const bdJson = require('../bdJson/bdJson');
 const formData = require('../formData');
 const jwt = require('jsonwebtoken');
+const socket = require('../socket/socket-io.js');
 
 module.exports = {
     async AddEquipamento(req, res) {
@@ -16,13 +17,24 @@ module.exports = {
             pinName:nome,
             pinNumber:pin
         }
-        reqEsp.addEquiEsp(data,res,req).then(response=>{
-            if (response.potencia) {
-                equiBD.cadastrarEqui(pin,nome,response.potencia,res);
+        equiBD.verificarEquipamento(pin).then(resp=>{
+            if (resp.status == false) {
+                reqEsp.addEquiEsp(data,res,req).then(response=>{
+                    console.log("equiadd resp esp: ",response);
+                    if (response.potencia >= 0 ) {
+                        equiBD.cadastrarEqui(pin,nome,response.potencia,res);
+                    }else{
+                        res.json({
+                            status:400,
+                            description:'Potencia do equipamento nao encontrada.'
+                        });
+                    }
+                });
             }else{
+                console.log(resp.description);
                 res.json({
-                    status:400,
-                    description:'Potencia do equipamento nao encontrada.'
+                    status:409,
+                    description:resp.description
                 });
             }
         });
@@ -54,23 +66,62 @@ module.exports = {
             pinNumber:pin,
             pinValue:valor
         }
-        reqEsp.DigitalWriteEsp(data,res,req).then(response=>{
-            console.log("conexão feita com o esp");
-            if (response) {
-                var formhora = formData("hora");
-                var formdata = formData("data");
-                let valores = {
-                    modulo_id:pin,
-                    hora:formhora,
-                    dia:formdata,
-                    potencia:response.potencia,
-                    estado:valor
-                };
-                bdJson.enviarbd(formdata,valores,res);
+        equiBD.verificarEquipamento(pin).then(resp=>{
+            if (resp.status == true) {
+                reqEsp.DigitalWriteEsp(data,res,req).then(response=>{
+                    console.log("conexão feita com o esp");
+                    if (response) {
+                        var formhora = formData("hora");
+                        var formdata = formData("data");
+                        let valores = {
+                            modulo_id:pin,
+                            hora:formhora,
+                            dia:formdata,
+                            potencia:response.potencia,
+                            estado:valor
+                        };
+                        socket.emit("status",valores);
+                        bdJson.enviarbd(formdata,valores,res);
+                    }
+                },error=>{
+                    console.log("Tentativa de acessar esp falhada espController: ",res);
+                });
+            }else{
+                console.log(resp.description);
+                res.json({
+                    status:409,
+                    description:resp.description
+                });
             }
-        },error=>{
-            console.log("Tentativa de acessar esp falhada espController: ",res);
         });
+    },
+    equipamentos: (req,res)=>{
+        console.log('equipamentos controller');
+        equiBD.equipamentos().then(response=>{
+            console.log('equipamentos retornados: ',response.data);
+            if (response.status == true) {
+                console.log('equipamentos retornados 2: ',response.data);
+                res.json(response.data);
+            }
+        });
+    },
+    consumoUnitario: async(req,res)=>{
+        console.log('consumoUnitario controller');
+        const pin = await req.body.pin;
+        const mes = await req.body.mes;
+
+    },
+    consumoMensal:async(req,res)=>{
+        console.log('consumoUnitario controller');
+        const pin = await req.body.pin;
+    },
+    estadoEquipamento: async (req, res)=>{
+        console.log('estadoEquipamento controller');
+        const body = await req.body;
+        console.log('body controller: ',body); 
+        res.send("ok");
     }
+    
+    
 
 }

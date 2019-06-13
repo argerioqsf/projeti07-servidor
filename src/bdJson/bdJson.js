@@ -2,6 +2,7 @@ var fs = require('fs');
 const formData = require('../formData');
 var moment = require('moment');
 moment.locale('pt-BR');
+var equiBD = require('../bdMysql/equiBD');
  
 var obj = {
  
@@ -40,18 +41,16 @@ var obj = {
             formdata = "modulo_"+valores.modulo_id;
             let mes = valores.dia.split("-");
             mes = mes[1]+"-"+mes[2];
+            let dia = valores.dia.split("-");
+            dia = String(dia[1]);
             var local = obj.getFileDb(formdata);
             var fileContent = fs.exists(local, function(exists){
             if(exists){
-                // formhora =  formData("hora");
-                // console.log("[" + formhora + "] O arquivo já existe");
-                // formhora =  formData("hora");
-                // console.log("[" + formhora + "] Adicionando informações no arquivo: " + formdata + ".json");
                 var fileJson = obj.getData(formdata);
                 if (!fileJson.registros[mes]) {
                     fileJson.registros[mes] = {consumoTotal:0.00,registros:[]}
                 }
-                fileJson.registros[mes].registros.push(valores);
+                
                 if (valores.estado == 0 ) {
                     let oldData = false;
                     for (let i = 0; i < fileJson.registros[mes].registros.length; i++) {
@@ -88,83 +87,45 @@ var obj = {
                         console.log("consumo1: ",consumo);
                         consumo = parseFloat(consumo.toFixed(2));
                         console.log("consumo2: ",consumo);
+                        valores.consumo = consumo;
+                        fileJson.registros[mes].registros.push(valores);
                         fileJson.consumoTotal = (parseFloat(fileJson.consumoTotal) + consumo);
                         fileJson.consumoTotal = fileJson.consumoTotal.toFixed(2);
                         fileJson.registros[mes].consumoTotal = fileJson.registros[mes].consumoTotal + consumo;
-                        obj.consumo_mes(mes,consumo);
-                        // let CP = fileJson["consumoPin"+valores.modulo_id];
-                        // console.log("CP: ",CP);
-                        // if (CP>=0) {
-                        //     console.log("consumoPin ja existe: ",CP);
-                        //     CP = (parseFloat(CP) + consumo);
-                        //     CP = CP.toFixed(2);
-                        //     fileJson["consumoPin"+valores.modulo_id] = CP;
-                        // }else{
-                        //     console.log("consumoPin não existe");
-                        //     fileJson["consumoPin"+valores.modulo_id] = consumo;
-                        // }
+                        obj.consumo_mes(mes,dia,consumo);
                         obj.saveData(fileJson,formdata);
-                        // formhora =  formData("hora");
-                        // console.log("[" + formhora + "] Informações adicionadas no arquivo: " + formdata + ".json");
-                        // console.log("[" + formhora + "]  Length do arquivo: " + formdata + ".json: " + fileJson.length);
-                         res.json("attDados");
+                         res.json({status:200});
                     }else{
                         obj.saveData(fileJson,formdata);
-                        obj.consumo_mes(mes,0.00);
-                        // formhora =  formData("hora");
-                        // console.log("[" + formhora + "] Informações adicionadas no arquivo: " + formdata + ".json");
-                        // console.log("[" + formhora + "]  Length do arquivo: " + formdata + ".json: " + fileJson.length);
-                         res.json("attDados");
+                        obj.consumo_mes(mes,dia,0.00);
+                         res.json({status:200});
                     }
                 }else{
-                    // let mes = valores.dia.split("-");
-                    // mes = mes[1]+"-"+mes[2];
-                    // obj.consumo_mes(mes,0.00);
                     obj.saveData(fileJson,formdata);
-                    // formhora =  formData("hora");
-                    // console.log("[" + formhora + "] Informações adicionadas no arquivo: " + formdata + ".json");
-                    // console.log("[" + formhora + "]  Length do arquivo: " + formdata + ".json: " + fileJson.length);
-                     res.json("attDados");
+                     res.json({status:200});
                 }
             }else{
-                // formhora =  formData("hora");
-                // console.log("[" + formhora + "] o arquivo não existe");
-                // formhora =  formData("hora");
-                // console.log("[" + formhora + "] Crinado arquivo: " + formdata + ".json");
-                // var localEx = obj.getFileDb("DiasCadastrados");
-                // var existe = fs.exists(localEx, function(exists){
-                //     if (exists) {
-                //         var fileJson = obj.getData("DiasCadastrados");
-                //         fileJson.registros.push(valores);
-                //     }
-                // });
                 if (valores.estado == 0) {
                     console.log("ainda nao existe registro e foi desligado");
-                    //obj.calculoDeHoraFirst(valores,formdata).then(consumo=>{
-                        //valores = JSON.stringify(valores);
-                        obj.consumo_mes(mes,0.00);
+                        obj.consumo_mes(mes,dia,0.00);
+                        valores.consumo = 0.00;
                         valores = `{ "consumoTotal": ${0.00} , "registros":{ "${mes}": { "consumoTotal":0.00,"registros":[ ${JSON.stringify(valores)}] } } }`;
                         valores = JSON.parse(valores);
                         obj.saveData(valores,formdata);
-                        // formhora =  formData("hora");
-                        // console.log("[" + formhora + "] Arquivo (" + formdata + ".json ) Criado");
-                        res.json("newDados");
-                    //});
+                        res.json({status:200});
                 }else{
-                    //valores = JSON.stringify(valores);
-                    obj.consumo_mes(mes,0.00);
+                    obj.consumo_mes(mes,dia,0.00);
+                    valores.consumo = 0.00;
                     valores = `{ "consumoTotal":${0.00}, "registros":{ "${mes}": { "consumoTotal":0.00,"registros":[ ${JSON.stringify(valores)}] } } }`;
                     valores = JSON.parse(valores);
                     obj.saveData(valores,formdata);
-                    // formhora =  formData("hora");
-                    // console.log("[" + formhora + "] Arquivo (" + formdata + ".json ) Criado");
-                    res.json("newDados");
+                    res.json({status:200});
                 }
             }
             });
             //Ct=P*horas/1000
     },
-    consumo_mes: function(mes,consumo){
+    consumo_mes: function(mes,dia,consumo){
         console.log("consumo_mes: ",consumo);
         var local = obj.getFileDb("consumo_mes");
         var existe = fs.exists(local, function(exists){
@@ -172,11 +133,24 @@ var obj = {
                 var consumo_mes = obj.getData("consumo_mes");
                 if (consumo_mes[mes]) {
                     consumo_mes[mes].consumo = consumo_mes[mes].consumo + consumo;
+                    let registro = {};
+                    if (consumo_mes[mes].registros[dia]) {
+                        consumo_mes[mes].registros[dia].consumo = consumo_mes[mes].registros[dia].consumo + consumo;
+                    }else{
+                        registro = {consumo,dia};
+                        consumo_mes[mes].registros = {}; 
+                        consumo_mes[mes].registros[dia] = {}; 
+                        consumo_mes[mes].registros[dia] = registro; 
+                    }
                     consumo_mes[mes].consumo = parseFloat(consumo_mes[mes].consumo.toFixed(2));
                     console.log("add consumo_mes: ",consumo_mes);
                     obj.saveData(consumo_mes,"consumo_mes");
                 }else{
                     consumo_mes[mes] = {consumo:0.00};
+                    let registro = {};
+                    registro = {consumo,dia};
+                    consumo_mes[mes].registros = {}; 
+                    consumo_mes[mes].registros[dia] = registro; 
                     consumo_mes[mes].consumo = consumo_mes[mes].consumo + consumo;
                     consumo_mes[mes].consumo = parseFloat(consumo_mes[mes].consumo.toFixed(2));
                     console.log("add consumo_mes: ",consumo_mes);
@@ -229,7 +203,8 @@ var obj = {
 
 var obj2 = {
     statusEquipamentos: function(modulo_id,status){
-        modulo_id = "modulo_"+modulo_id
+    equiBD.attEstado(modulo_id,status);
+    modulo_id = "modulo_"+modulo_id
     console.log("statusEquipamentos: ",modulo_id,", ",status);
     var local = obj.getFileDb("statusEquipamentos");
     var existe = fs.exists(local, function(exists){
